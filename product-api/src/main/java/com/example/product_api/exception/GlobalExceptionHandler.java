@@ -1,4 +1,4 @@
-package com.example.product_api.controller;
+package com.example.product_api.exception;
 
 import com.example.product_api.entity.Product;
 import org.springframework.http.HttpStatus;

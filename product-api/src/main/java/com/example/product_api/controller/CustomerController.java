@@ -1,13 +1,15 @@
 package com.example.product_api.controller;
 
-import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import jakarta.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.product_api.ChangePasswordRequest;
 import com.example.product_api.entity.Customer;
 import com.example.product_api.service.CustomerService;
 
@@ -27,47 +30,29 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
+
     @PostMapping
-    public ResponseEntity<String> createCustomer(@Valid @RequestBody Customer customer, BindingResult bindingResult) {
-        if (bindingResult.hasErrors()) {
-            return new ResponseEntity<>("Invalid data", HttpStatus.BAD_REQUEST);
-        }
-
-        try {
-            customerService.createCustomer(customer);
-            return new ResponseEntity<>("Customer created successfully", HttpStatus.CREATED);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.CONFLICT);
-        }
+    public ResponseEntity<Customer> createCustomer(@Valid @RequestBody Customer customer) {
+        Customer newCustomer = customerService.createCustomer(customer);
+        return new ResponseEntity<>(newCustomer, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<Customer> getCustomerById(@PathVariable Long id) {
-        try {
-            Customer customer = customerService.getCustomerById(id);
-            return new ResponseEntity<>(customer, HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    @GetMapping("/{customerId}")
+    public ResponseEntity<Customer> getCustomerById(@PathVariable Long customerId) {
+        Customer customer = customerService.getCustomerById(customerId);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<String> updateCustomer(@PathVariable Long id, @RequestBody Customer updatedCustomer) {
-        Optional<Customer> customer = customerService.updateCustomer(id, updatedCustomer);
-        if (customer.isPresent()) {
-            return new ResponseEntity<>("Customer updated successfully", HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>("Customer not found", HttpStatus.NOT_FOUND);
-        }
+    @PatchMapping("/{customerId}")
+    public ResponseEntity<Customer> updateCustomer(@PathVariable Long customerId, @RequestBody Customer updatedCustomer) {
+        Customer customer = customerService.updateCustomer(customerId, updatedCustomer);
+        return new ResponseEntity<>(customer, HttpStatus.OK);
     }
 
-    @PutMapping("/{id}/password")
-    public ResponseEntity<String> changePassword(@PathVariable Long id, @RequestBody String newPassword) {
-        try {
-            customerService.changePassword(id, newPassword);
-            return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
-        } catch (IllegalArgumentException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
-        }
+    @PutMapping("/{customerId}/password")
+    public ResponseEntity<?> changePassword(@PathVariable Long customerId, @RequestBody ChangePasswordRequest changePasswordRequest) {
+        customerService.changePassword(customerId, changePasswordRequest.getOldPassword(), changePasswordRequest.getNewPassword());
+        return new ResponseEntity<>(HttpStatus.OK);
     }
+
 }
